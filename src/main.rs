@@ -45,14 +45,19 @@ async fn main() -> std::io::Result<()> {
 
     let pool = match PgPoolOptions::new().connect(uri).await {
         Ok(pool) => {
-            println!("Connect to database Successfully!");
+            log::log!(log::Level::Info, "Connect to database Successfully!");
             pool
         }
         Err(e) => {
-            panic!("Fail to connect to database. Error: {}", e)
+            log::log!(
+                log::Level::Error,
+                "Fail to connect to database. Error: {}",
+                e
+            );
+            panic!()
         }
     };
-    println!("Starting Server...");
+    log::log!(log::Level::Info, "Starting Server...");
     HttpServer::new(move || {
         let auth = HttpAuthentication::bearer(validator);
         let cors = Cors::default()
