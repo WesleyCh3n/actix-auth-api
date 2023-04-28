@@ -3,5 +3,5 @@ all:
 		-H "Content-Type: application/json" \
 		-d '{"name": "wesley", "password": "1234"}'
 
-	curl -v -H "Authorization: Bearer ${TOKEN}" localhost:8080/station
-	curl -v -H "Authorization: Bearer ${TOKEN}" localhost:8080/station/123
+	curl -v -H "Authorization: Bearer ${TOKEN}" localhost:8080/api/station
+	curl -v -H "Authorization: Bearer ${TOKEN}" localhost:8080/api/station/123
