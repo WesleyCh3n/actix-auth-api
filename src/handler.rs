@@ -1,10 +1,31 @@
-use actix_web::{get, post, web, HttpResponse, Responder};
+use actix_web::{cookie, delete, get, post, web, HttpResponse, Responder};
 
 use crate::{auth::UserInfo, model::Station, AppState};
 
 #[post("/auth")]
 pub async fn get_auth(user_info: web::Json<UserInfo>) -> impl Responder {
-    crate::auth::generate_token(&user_info)
+    let token = match crate::auth::generate_token(&user_info) {
+        Ok(token) => token,
+        Err(e) => return HttpResponse::from(e),
+    };
+    let cookie = cookie::Cookie::build("jwt", token)
+        .http_only(true)
+        .max_age(cookie::time::Duration::days(1))
+        .finish();
+    let json_rsp = serde_json::json!({
+        "status": "success",
+        "user": user_info.email,
+    });
+    HttpResponse::Ok().cookie(cookie).json(json_rsp)
+}
+
+#[delete("/auth")]
+pub async fn remove_auth() -> impl Responder {
+    let cookie = cookie::Cookie::build("jwt", "")
+        .http_only(true)
+        .max_age(cookie::time::Duration::days(-1))
+        .finish();
+    HttpResponse::Ok().cookie(cookie).finish()
 }
 
 #[get("/station")]

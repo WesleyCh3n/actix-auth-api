@@ -18,7 +18,7 @@ struct Claims {
 
 #[derive(Deserialize)]
 pub struct UserInfo {
-    pub name: String,
+    pub email: String,
     pub password: String,
 }
 
@@ -57,7 +57,7 @@ pub fn validate_token(token: &str) -> Result<(), Error> {
 }
 
 pub fn generate_token(user_info: &UserInfo) -> Result<String, Error> {
-    if user_info.name != "wesley" || user_info.password != "1234" {
+    if user_info.email != "wesley@wesley.com" || user_info.password != "1234" {
         return Err(error::ErrorUnauthorized("username or password not found"));
     }
 
