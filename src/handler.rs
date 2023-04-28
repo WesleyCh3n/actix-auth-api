@@ -8,13 +8,14 @@ pub async fn get_auth(user_info: web::Json<UserInfo>) -> impl Responder {
         Ok(token) => token,
         Err(e) => return HttpResponse::from(e),
     };
-    let cookie = cookie::Cookie::build("jwt", token)
+    let cookie = cookie::Cookie::build("jwt", &token)
         .http_only(true)
         .max_age(cookie::time::Duration::days(1))
         .finish();
     let json_rsp = serde_json::json!({
         "status": "success",
         "user": user_info.email,
+        "jwt-token": token,
     });
     HttpResponse::Ok().cookie(cookie).json(json_rsp)
 }
