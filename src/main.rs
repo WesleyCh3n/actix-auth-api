@@ -19,9 +19,9 @@ pub struct AppState {
 }
 async fn validator(
     req: ServiceRequest,
-    _credentials: BearerAuth,
+    credentials: BearerAuth,
 ) -> Result<ServiceRequest, (Error, ServiceRequest)> {
-    match auth::validate_token(_credentials.token()) {
+    match auth::validate_token(credentials.token()) {
         Ok(_) => Ok(req),
         Err(e) => Err((e, req)),
     }
@@ -29,8 +29,7 @@ async fn validator(
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    std::env::set_var("RUST_LOG", "actix_web=info");
-    env_logger::init();
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     dotenv::dotenv().ok();
     let host = env::var("DBHOST").expect("DBHOST");
@@ -62,8 +61,7 @@ async fn main() -> std::io::Result<()> {
             .allowed_methods(vec!["GET", "POST", "DELETE"])
             .supports_credentials();
         App::new()
-            .wrap(Logger::default())
-            .wrap(Logger::new("%a %{User-Agent}i"))
+            .wrap(Logger::new("%a %r %s"))
             .app_data(web::Data::new(AppState { db: pool.clone() }))
             .wrap(cors)
             .service(handler::get_auth)
