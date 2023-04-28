@@ -4,8 +4,10 @@ mod model;
 
 use std::env;
 
+use actix_cors::Cors;
 use actix_web::dev::ServiceRequest;
-use actix_web::{middleware, web, App, Error, HttpServer};
+use actix_web::middleware::Logger;
+use actix_web::{web, App, Error, HttpServer};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
 use actix_web_httpauth::middleware::HttpAuthentication;
 use sqlx::postgres::PgPoolOptions;
@@ -27,6 +29,9 @@ async fn validator(
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    std::env::set_var("RUST_LOG", "actix_web=info");
+    env_logger::init();
+
     dotenv::dotenv().ok();
     let host = env::var("DBHOST").expect("DBHOST");
     let db = env::var("DB").expect("DB");
@@ -39,13 +44,30 @@ async fn main() -> std::io::Result<()> {
     uri.set_password(Some(&pwd)).expect("set pwd");
     let uri = uri.as_str();
 
-    let pool = PgPoolOptions::new().connect(uri).await.expect("pool");
+    let pool = match PgPoolOptions::new().connect(uri).await {
+        Ok(pool) => {
+            println!("Connect to database Successfully!");
+            pool
+        }
+        Err(e) => {
+            panic!("Fail to connect to database. Error: {}", e)
+        }
+    };
+    println!("Starting Server...");
     HttpServer::new(move || {
         let auth = HttpAuthentication::bearer(validator);
+        let cors = Cors::default()
+            .allow_any_origin()
+            .allow_any_header()
+            .allowed_methods(vec!["GET", "POST", "DELETE"])
+            .supports_credentials();
         App::new()
+            .wrap(Logger::default())
+            .wrap(Logger::new("%a %{User-Agent}i"))
             .app_data(web::Data::new(AppState { db: pool.clone() }))
-            .wrap(middleware::Logger::default())
+            .wrap(cors)
             .service(handler::get_auth)
+            .service(handler::remove_auth)
             .service(
                 web::scope("/api")
                     .wrap(auth)
