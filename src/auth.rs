@@ -2,8 +2,7 @@ use std::time::UNIX_EPOCH;
 
 use actix_web::{error, Error};
 use jsonwebtoken::{
-    decode, encode, errors::ErrorKind, Algorithm, DecodingKey, EncodingKey,
-    Header, Validation,
+    decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
 use serde::{Deserialize, Serialize};
 
@@ -30,18 +29,12 @@ pub fn validate_token(token: &str) -> Result<(), Error> {
         &validation,
     ) {
         Ok(c) => c,
-        Err(err) => match *err.kind() {
-            ErrorKind::InvalidToken => {
-                return Err(error::ErrorUnauthorized("InvalidToken"))
-            }
-            ErrorKind::InvalidIssuer => {
-                return Err(error::ErrorUnauthorized("InvalidIssuer"))
-            }
-            ErrorKind::InvalidSignature => {
-                return Err(error::ErrorUnauthorized("InvalidSignature"));
-            }
-            _ => return Err(error::ErrorUnauthorized("Other Token Error")),
-        },
+        Err(err) => {
+            return Err(error::ErrorUnauthorized(format!(
+                "Token Error: {:?}",
+                err.kind()
+            )))
+        }
     };
 
     let curr = std::time::SystemTime::now()
