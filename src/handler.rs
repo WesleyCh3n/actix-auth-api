@@ -38,8 +38,8 @@ pub async fn get_station(data: web::Data<AppState>) -> impl Responder {
             .unwrap();
     let json_rsp = serde_json::json!({
         "status": "success",
-        "results": stations.len(),
-        "station": stations
+        "length": stations.len(),
+        "results": stations
     });
     HttpResponse::Ok().json(json_rsp)
 }
@@ -62,8 +62,8 @@ where id = $1",
     .unwrap();
     let json_rsp = serde_json::json!({
         "status": "success",
-        "results": stations.len(),
-        "station": stations
+        "length": stations.len(),
+        "results": stations
     });
     HttpResponse::Ok().json(json_rsp)
 }
