@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 
-import { GetStation, Station } from "../api/Station";
+import { DataBase, DataBaseStr, GetData, Station, Chip } from "../api/Database";
 import { AsyncButton } from "../components/Button";
 import {
   TableInstance,
@@ -10,31 +10,58 @@ import {
 } from "../components/Table";
 import { useAuth } from "../hooks/useAuthStore";
 
-type DataType = | Station | number;
-
 export const SfisPage = () => {
   const { token } = useAuth((state) => state);
-  const [data, setResult] = useState<DataType[]>([]);
+  const [data, setData] = useState<DataBase[]>([]);
+  const [dataType, setDataType] = useState<DataBaseStr>("");
 
   // TODO:
-  const columns = useMemo<ColumnDef<DataType, any>[]>(() => {
-    // "type" in data[0] && data[0].type === "Station"
-    return [
+  const columns = useMemo<ColumnDef<DataBase, any>[]>(() => {
+    const default_col = [
       { header: "ID", accessorKey: "id" },
       { header: "Name", accessorKey: "name" },
       { header: "Description", accessorKey: "description" },
     ];
-  }, [data]);
+    if (dataType === "Station") {
+      return [
+        { header: "ID", accessorKey: "id" },
+        { header: "Name", accessorKey: "name" },
+        { header: "Description", accessorKey: "description" },
+      ];
+    } else if (dataType === "Chip") {
+      return [
+        { header: "ID", accessorKey: "id" },
+        { header: "Vendor ID", accessorKey: "vendor_id" },
+        { header: "Name", accessorKey: "name" },
+        { header: "Description", accessorKey: "description" },
+      ];
+    }
+    return default_col;
+  }, [dataType]);
 
   const table = TableInstance(data, columns);
   return (
     <div>
       <AsyncButton
+        className="mx-2"
         content="Get Station"
         onClick={async () => {
           if (token) {
-            let objs = await GetStation(token);
-            setResult(objs.data);
+            let result = await GetData<Station>(token, "Station");
+            setData(result.data);
+            setDataType("Station");
+            table.setPageSize(20);
+          }
+        }}
+      />
+      <AsyncButton
+        className="mx-2"
+        content="Get Chip"
+        onClick={async () => {
+          if (token) {
+            let objs = await GetData<Chip>(token, "Chip");
+            setData(objs.data);
+            setDataType("Chip");
             table.setPageSize(20);
           }
         }}
