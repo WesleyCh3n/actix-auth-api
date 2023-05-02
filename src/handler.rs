@@ -1,6 +1,10 @@
 use actix_web::{cookie, delete, get, post, web, HttpResponse, Responder};
 
-use crate::{auth::UserInfo, model::Station, AppState};
+use crate::{
+    auth::UserInfo,
+    model::{Chip, Station},
+    AppState,
+};
 
 #[post("/auth")]
 pub async fn get_auth(user_info: web::Json<UserInfo>) -> impl Responder {
@@ -64,6 +68,20 @@ where id = $1",
         "status": "success",
         "length": stations.len(),
         "results": stations
+    });
+    HttpResponse::Ok().json(json_rsp)
+}
+
+#[get("/chip")]
+pub async fn get_chip(data: web::Data<AppState>) -> impl Responder {
+    let chip: Vec<Chip> = sqlx::query_as!(Chip, "select * from tbl_chip")
+        .fetch_all(&data.db)
+        .await
+        .unwrap();
+    let json_rsp = serde_json::json!({
+        "status": "success",
+        "length": chip.len(),
+        "results": chip
     });
     HttpResponse::Ok().json(json_rsp)
 }

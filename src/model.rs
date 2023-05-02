@@ -8,3 +8,13 @@ pub struct Station {
     pub type_id: i64,
     pub recordmark_id: i64,
 }
+
+#[derive(Serialize, Debug)]
+pub struct Chip {
+    pub id: i64,
+    pub name: String,
+    pub description: Option<String>,
+    pub vendor_id: i64,
+    pub type_id: i64,
+    pub recordmark_id: i64,
+}
