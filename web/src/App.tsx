@@ -2,7 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { HomeLayout, NavBar, ProtectedLayout } from "./components";
 import AutoLogout from "./components/AutoLogout";
-import { LoginPage, PageNotFound, QueryPage, UploadPage } from "./pages";
+import { LoginPage, PageNotFound, UploadPage } from "./pages";
 import { SfisPage } from "./pages/Sfis";
 
 function App() {
@@ -16,7 +16,6 @@ function App() {
 
         <Route path="/" element={<ProtectedLayout />}>
           <Route path="upload" element={<UploadPage />} />
-          <Route path="query" element={<QueryPage />} />
           <Route path="sfis" element={<SfisPage />} />
         </Route>
 

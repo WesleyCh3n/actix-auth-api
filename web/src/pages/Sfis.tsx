@@ -11,12 +11,14 @@ import {
 import { useAuth } from "../hooks/useAuthStore";
 
 type DataType = | Station | number;
+
 export const SfisPage = () => {
   const { token } = useAuth((state) => state);
   const [data, setResult] = useState<DataType[]>([]);
 
   // TODO:
   const columns = useMemo<ColumnDef<DataType, any>[]>(() => {
+    // "type" in data[0] && data[0].type === "Station"
     return [
       { header: "ID", accessorKey: "id" },
       { header: "Name", accessorKey: "name" },

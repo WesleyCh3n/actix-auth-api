@@ -13,10 +13,6 @@ const menuItem = [
     url: "sfis",
   },
   {
-    title: "Query",
-    url: "query",
-  },
-  {
     title: "Tools",
     url: "",
     submenu: [

@@ -6,6 +6,7 @@ export interface Station {
   description: String;
   type_id: number;
   recordmark_id: number;
+  type: "Station";
 }
 
 export const GetStation = async (token: String) => {
