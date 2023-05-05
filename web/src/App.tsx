@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
-import { HomeLayout, NavBar, ProtectedLayout } from "./components";
+import { HomeLayout, ProtectedLayout } from "./components";
 import AutoLogout from "./components/AutoLogout";
 import { LoginPage, PageNotFound, UploadPage } from "./pages";
 import { SfisPage } from "./pages/Sfis";
@@ -8,7 +8,6 @@ import { SfisPage } from "./pages/Sfis";
 function App() {
   return (
     <BrowserRouter>
-      <NavBar />
       <Routes>
         <Route element={<HomeLayout />}>
           <Route path="/login" element={<LoginPage />} />
