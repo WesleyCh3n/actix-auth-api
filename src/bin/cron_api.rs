@@ -1,9 +1,11 @@
+use chrono::offset::Local;
+use chrono::DateTime;
 use sqlx::postgres::PgPoolOptions;
 use std::env;
 use std::error::Error as StdError;
 use url::Url;
 
-use asr_api::model::Station;
+use asr_api::model::Api;
 
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn StdError>> {
@@ -35,27 +37,45 @@ async fn main() -> Result<(), Box<dyn StdError>> {
             panic!()
         }
     };
+    let datetime: DateTime<Local> = std::time::SystemTime::now().into();
 
-    let stations: Vec<Station> =
-        sqlx::query_as!(Station, "select * from tbl_station")
-            .fetch_all(&pool)
-            .await?;
-    let json_req = serde_json::json!({
-        "length": stations.len(),
-        "results": stations
-    });
+    let result: Vec<Api> = sqlx::query_as!(
+        Api,
+        "
+        SELECT
+            E.code AS sn,
+            B.code AS ppid,
+            C.code AS code,
+            TO_CHAR(A.created_at, 'yyyy-MM-dd HH24:mi:ss') AS time
+        FROM
+            TBL_ChipBinding AS A
+            INNER JOIN TBL_SFIS AS B ON A.sfis_id = B.id
+            AND A.conflictsfis_id = '0'
+            AND A.conflictSN_id = '0'
+            AND A.recordmark_id = '0'
+            INNER JOIN TBL_ChipSN AS C ON A.chipsn_id = C.id
+            LEFT JOIN TBL_SfisPSN AS D ON D.sfis_id = A.sfis_id
+            AND D.recordmark_id = '0'
+            LEFT JOIN TBL_PSN AS E ON E.id = D.psn_id
+        WHERE
+            TO_CHAR(A.created_at, 'yyyy-MM-dd') >= $1
+            AND TO_CHAR(A.created_at, 'yyyy-MM-dd') <= $1
+        ORDER BY
+            A.created_at
+        ",
+        datetime.format("%Y-%m-%d").to_string()
+    )
+    .fetch_all(&pool)
+    .await?;
+    let json_result = serde_json::json!({ "data": result });
+    println!("{:#?}", json_result);
+
     let client = awc::Client::new();
-    let res = client
-        .get("https://www.rust-lang.org/")
-        .append_header(("User-Agent", "Actix-web"))
-        .send()
+    let mut res = client
+        .post(env::var("API_URL").expect("API_URL"))
+        .send_json(&json_result)
         .await?;
-
-    println!("Response: {:?}", res);
-    let res = client
-        .post("http://httpbin.org/post")
-        .send_json(&json_req)
-        .await?;
-    println!("Response: {:?}", res);
+    println!("Rsp Status: {:#?}", res.status());
+    println!("Rsp Body: {:#?}", res.json::<serde_json::Value>().await?);
     Ok(())
 }

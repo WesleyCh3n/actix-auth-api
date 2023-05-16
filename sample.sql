@@ -4,6 +4,18 @@ BEGIN TRANSACTION;
     Drop Tables
 =========================================================
 */
+-- 34. TBL_MoInfo
+DROP TABLE IF EXISTS TBL_MoInfo;
+DROP SEQUENCE IF EXISTS TBL_MoInfo_id;
+
+-- 33. TBL_SfisPSN
+DROP TABLE IF EXISTS TBL_SfisPSN;
+DROP SEQUENCE IF EXISTS TBL_SfisPSN_id;
+
+-- 32. TBL_PSN
+DROP TABLE IF EXISTS TBL_PSN;
+DROP SEQUENCE IF EXISTS TBL_PSN_id;
+
 -- 31. TBL_SfisStation
 DROP TABLE IF EXISTS TBL_SfisStation;
 DROP SEQUENCE IF EXISTS TBL_SfisStation_id;
@@ -209,6 +221,7 @@ INSERT INTO TBL_User (name, description, password, status_id) VALUES('TEST', 'SM
 INSERT INTO TBL_User (name, description, password, status_id) VALUES('PACK', 'SMT Operator', '#3515', (SELECT id FROM TBL_AccountStatus WHERE name='Active'));
 INSERT INTO TBL_User (name, description, password, status_id) VALUES('QA', 'SMT Operator', '#3515', (SELECT id FROM TBL_AccountStatus WHERE name='Active'));
 INSERT INTO TBL_User (name, description, password, status_id) VALUES('REPAIR', 'REPAIR Operator', '#3515', (SELECT id FROM TBL_AccountStatus WHERE name='Active'));
+INSERT INTO TBL_User (name, description, password, status_id) VALUES('PACKAGE', 'PACKAGE Operator', '#3515', (SELECT id FROM TBL_AccountStatus WHERE name='Active'));
 
 -- 5. TBL_UserRoles
 CREATE SEQUENCE TBL_UserRoles_id as bigint;
@@ -232,6 +245,7 @@ INSERT INTO TBL_UserRoles VALUES(DEFAULT, (SELECT id FROM TBL_User WHERE name='T
 INSERT INTO TBL_UserRoles VALUES(DEFAULT, (SELECT id FROM TBL_User WHERE name='PACK'), (SELECT id FROM TBL_AccountRole WHERE name='Operator'));
 INSERT INTO TBL_UserRoles VALUES(DEFAULT, (SELECT id FROM TBL_User WHERE name='QA'), (SELECT id FROM TBL_AccountRole WHERE name='Operator'));
 INSERT INTO TBL_UserRoles VALUES(DEFAULT, (SELECT id FROM TBL_User WHERE name='REPAIR'), (SELECT id FROM TBL_AccountRole WHERE name='Operator'));
+INSERT INTO TBL_UserRoles VALUES(DEFAULT, (SELECT id FROM TBL_User WHERE name='PACKAGE'), (SELECT id FROM TBL_AccountRole WHERE name='Operator'));
 
 -- 6. TBL_StationType
 CREATE SEQUENCE TBL_StationType_id as bigint;
@@ -254,6 +268,7 @@ INSERT INTO TBL_StationType VALUES(DEFAULT, 'TEST', 'Station - TEST', DEFAULT);
 INSERT INTO TBL_StationType VALUES(DEFAULT, 'PACK', 'Station - PACKING', DEFAULT);
 INSERT INTO TBL_StationType VALUES(DEFAULT, 'QA', 'Station - QA', DEFAULT);
 INSERT INTO TBL_StationType VALUES(DEFAULT, 'REPAIR', 'Station - REPAIR', DEFAULT);
+INSERT INTO TBL_StationType VALUES(DEFAULT, 'PACKAGE', 'Station - PACKAGE', DEFAULT);
 
 -- 7. TBL_Station
 CREATE SEQUENCE TBL_Station_id as bigint;
@@ -280,6 +295,7 @@ INSERT INTO TBL_Station VALUES(DEFAULT, 'TEST1', 'Station - TEST', (SELECT id FR
 INSERT INTO TBL_Station VALUES(DEFAULT, 'PACK1', 'Station - PACKING', (SELECT id FROM TBL_StationType WHERE name='PACK'), DEFAULT);
 INSERT INTO TBL_Station VALUES(DEFAULT, 'QA1', 'Station - QA', (SELECT id FROM TBL_StationType WHERE name='QA'), DEFAULT);
 INSERT INTO TBL_Station VALUES(DEFAULT, 'REPAIR', 'Station - REPAIR', (SELECT id FROM TBL_StationType WHERE name='REPAIR'), DEFAULT);
+INSERT INTO TBL_Station VALUES(DEFAULT, 'PACKAGE', 'Station - PACKAGE', (SELECT id FROM TBL_StationType WHERE name='PACKAGE'), DEFAULT);
 
 -- 8.TBL_PC
 CREATE SEQUENCE TBL_PC_id as bigint;
@@ -649,6 +665,12 @@ INSERT INTO TBL_StationFlow (station_id, flow_id, status_id) VALUES(
     (SELECT id FROM TBL_WorkFlowStatus WHERE name='Start')
 );
 
+INSERT INTO TBL_StationFlow (station_id, flow_id, status_id) VALUES(
+    (SELECT id FROM TBL_Station WHERE name='PACKAGE'),
+    (SELECT id FROM TBL_WorkFlow WHERE name='FLOW001'),
+    (SELECT id FROM TBL_WorkFlowStatus WHERE name='Start')
+);
+
 -- 27. TBL_SystemEventType
 CREATE SEQUENCE TBL_SystemEventType_id as bigint;
 CREATE TABLE TBL_SystemEventType
@@ -721,5 +743,52 @@ CREATE TABLE TBL_SfisStation
 ALTER TABLE TBL_SfisStation ADD CONSTRAINT PK_TBL_SfisStation_id PRIMARY KEY(id);
 ALTER TABLE TBL_SfisStation ADD CONSTRAINT FK_TBL_SfisStation_sfis_id FOREIGN KEY (sfis_id) REFERENCES TBL_SFIS(id);
 ALTER TABLE TBL_SfisStation ADD CONSTRAINT FK_TBL_SfisStation_login_id FOREIGN KEY (login_id) REFERENCES TBL_Login(id);
+
+-- 32. TBL_PSN
+CREATE SEQUENCE TBL_PSN_id as bigint;
+CREATE TABLE TBL_PSN
+(
+    id bigint NOT NULL DEFAULT nextval('TBL_PSN_id'),
+    code varchar(64) NOT NULL,
+    login_id bigint NOT NULL,
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    recordmark_id bigint NOT NULL DEFAULT 0
+);
+ALTER TABLE TBL_PSN ADD CONSTRAINT PK_TBL_PSN_id PRIMARY KEY(id);
+ALTER TABLE TBL_PSN ADD CONSTRAINT INDEX_TBL_PSN_code UNIQUE(code, recordmark_id);
+ALTER TABLE TBL_PSN ADD CONSTRAINT FK_TBL_PSN_login_id FOREIGN KEY (login_id) REFERENCES TBL_Login(id);
+
+-- 33. TBL_SfisPSN
+CREATE SEQUENCE TBL_SfisPSN_id as bigint;
+CREATE TABLE TBL_SfisPSN
+(
+    id bigint NOT NULL DEFAULT nextval('TBL_SfisPSN_id'),
+    sfis_id bigint NOT NULL,
+    psn_id bigint NOT NULL,
+    login_id bigint NOT NULL,
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    recordmark_id bigint NOT NULL DEFAULT 0
+);
+ALTER TABLE TBL_SfisPSN ADD CONSTRAINT PK_TBL_SfisPSN_id PRIMARY KEY(id);
+ALTER TABLE TBL_SfisPSN ADD CONSTRAINT FK_TBL_SfisPSN_sfis_id FOREIGN KEY (sfis_id) REFERENCES TBL_SFIS(id);
+ALTER TABLE TBL_SfisPSN ADD CONSTRAINT FK_TBL_SfisPSN_psn_id FOREIGN KEY (psn_id) REFERENCES TBL_PSN(id);
+ALTER TABLE TBL_SfisPSN ADD CONSTRAINT FK_TBL_SfisPSN_login_id FOREIGN KEY (login_id) REFERENCES TBL_Login(id);
+
+-- 34. TBL_MoInfo
+CREATE SEQUENCE TBL_MoInfo_id as bigint;
+CREATE TABLE TBL_MoInfo
+(
+    id bigint NOT NULL DEFAULT nextval('TBL_MoInfo_id'),
+    mo_id bigint NOT NULL,
+    quantity bigint NOT NULL DEFAULT 0,
+    sfisstart varchar(64) NOT NULL DEFAULT 0,
+    sfisend varchar(64) NOT NULL DEFAULT 0,
+    login_id bigint NOT NULL,
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    recordmark_id bigint NOT NULL DEFAULT 0
+);
+ALTER TABLE TBL_MoInfo ADD CONSTRAINT PK_TBL_MoInfo_id PRIMARY KEY(id);
+ALTER TABLE TBL_MoInfo ADD CONSTRAINT FK_TBL_MoInfo_mo_id FOREIGN KEY (mo_id) REFERENCES TBL_MO(id);
+ALTER TABLE TBL_MoInfo ADD CONSTRAINT FK_TBL_MoInfo_login_id FOREIGN KEY (login_id) REFERENCES TBL_Login(id);
 
 END TRANSACTION;

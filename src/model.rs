@@ -18,3 +18,11 @@ pub struct Chip {
     pub type_id: i64,
     pub recordmark_id: i64,
 }
+
+#[derive(Serialize, Debug)]
+pub struct Api {
+    pub sn: String,
+    pub ppid: String,
+    pub code: String,
+    pub time: Option<String>,
+}
