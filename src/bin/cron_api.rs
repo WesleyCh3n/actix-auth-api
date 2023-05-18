@@ -41,9 +41,9 @@ async fn main() -> Result<(), Box<dyn StdError>> {
 
     let result: Vec<Api> = sqlx::query_as!(
         Api,
-        "
+        r#"
         SELECT
-            E.code AS sn,
+            E.code AS "sn?",
             B.code AS ppid,
             C.code AS code,
             TO_CHAR(A.created_at, 'yyyy-MM-dd HH24:mi:ss') AS time
@@ -62,12 +62,14 @@ async fn main() -> Result<(), Box<dyn StdError>> {
             AND TO_CHAR(A.created_at, 'yyyy-MM-dd') <= $1
         ORDER BY
             A.created_at
-        ",
+        "#,
         datetime.format("%Y-%m-%d").to_string()
     )
     .fetch_all(&pool)
     .await?;
+    println!("sql: {:#?}", result);
     let json_result = serde_json::json!({ "data": result });
+    println!("Day: {}", datetime.format("%Y-%m-%d"));
     println!("{:#?}", json_result);
 
     let client = awc::Client::new();

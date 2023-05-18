@@ -21,7 +21,7 @@ pub struct Chip {
 
 #[derive(Serialize, Debug)]
 pub struct Api {
-    pub sn: String,
+    pub sn: Option<String>,
     pub ppid: String,
     pub code: String,
     pub time: Option<String>,
