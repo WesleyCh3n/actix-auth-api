@@ -3,7 +3,6 @@ use chrono::DateTime;
 use sqlx::postgres::PgPoolOptions;
 use std::env;
 use std::error::Error as StdError;
-use url::Url;
 
 use asr_api::model::Api;
 
@@ -12,18 +11,9 @@ async fn main() -> Result<(), Box<dyn StdError>> {
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
     dotenv::dotenv().ok();
-    let host = env::var("DBHOST").expect("DBHOST");
-    let db = env::var("DB").expect("DB");
-    let port = env::var("DBPORT").expect("DBPORT");
-    let user = env::var("DBUSER").expect("DBUSER");
-    let pwd = env::var("DBPWD").expect("DBPWD");
-    let db_uri = format!("postgres://{}:{}/{}", host, port, db);
-    let mut uri = Url::parse(&db_uri).unwrap();
-    uri.set_username(&user).expect("set user");
-    uri.set_password(Some(&pwd)).expect("set pwd");
-    let uri = uri.as_str();
+    let uri = env::var("DATABASE_URL").expect("DATABASE_URL");
 
-    let pool = match PgPoolOptions::new().connect(uri).await {
+    let pool = match PgPoolOptions::new().connect(&uri).await {
         Ok(pool) => {
             log::log!(log::Level::Info, "Connect to database Successfully!");
             pool
