@@ -6,7 +6,7 @@ use jsonwebtoken::{
 };
 use serde::{Deserialize, Serialize};
 
-const KEY: &[u8; 6] = b"secret";
+const KEY: &[u8; 6] = b"secret"; // TODO: modify this
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Claims {
