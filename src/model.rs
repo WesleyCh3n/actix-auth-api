@@ -1,4 +1,5 @@
 use serde::Serialize;
+// use serde_with::{serde_as, NoneAsEmptyString};
 
 #[derive(Serialize, Debug)]
 pub struct Station {
@@ -19,8 +20,10 @@ pub struct Chip {
     pub recordmark_id: i64,
 }
 
+// #[serde_as]
 #[derive(Serialize, Debug)]
 pub struct Api {
+    // #[serde_as(as = "NoneAsEmptyString")]
     pub sn: Option<String>,
     pub ppid: String,
     pub code: String,
